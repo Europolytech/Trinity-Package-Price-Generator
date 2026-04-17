@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EuroPolytech Pricing Code Generator</title>
+  <style>
+    :root {
+      --brand-primary: #50144A;
+      --brand-primary-2: #65195e;
+      --brand-accent: #f6b10a;
+      --brand-soft: #f3ecf4;
+      --brand-border: #e6dbe8;
+      --brand-text: #322336;
+      --brand-muted: #786b7a;
+      --brand-bg: #faf7fb;
+      --white: #ffffff;
+      --shadow: 0 18px 48px rgba(80, 20, 74, 0.18);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(180deg, #f8f5f9 0%, #ffffff 100%);
+      color: var(--brand-text);
+    }
+
+    .page {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 28px 18px 50px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .title-wrap h1 {
+      margin: 0 0 8px;
+      color: var(--brand-primary);
+      font-size: clamp(2rem, 3vw, 3rem);
+      line-height: 1.04;
+    }
+
+    .title-wrap p {
+      margin: 0;
+      max-width: 860px;
+      color: var(--brand-muted);
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      border: none;
+      background: var(--brand-primary);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(80,20,74,0.18);
+      transition: transform .2s ease, opacity .2s ease;
+    }
+
+    .quick-btn.secondary {
+      background: #efe7f0;
+      color: var(--brand-primary);
+      box-shadow: none;
+      border: 1px solid var(--brand-border);
+    }
+
+    .quick-btn:hover { transform: translateY(-2px); }
+
+    .builder {
+      display: grid;
+      grid-template-columns: minmax(380px, 510px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.98);
+      border: 1px solid var(--brand-border);
+      border-radius: 24px;
+      box-shadow: 0 14px 34px rgba(80,20,74,0.08);
+    }
+
+    .controls {
+      padding: 20px;
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 32px);
+      overflow: auto;
+    }
+
+    .controls h2, .preview-panel h2, .output-panel h2 {
+      margin: 0 0 6px;
+      color: var(--brand-primary);
+      font-size: 1.4rem;
+    }
+
+    .section-note {
+      margin: 0 0 18px;
+      color: var(--brand-muted);
+      line-height: 1.65;
+      font-size: .95rem;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field-group {
+      padding: 16px;
+      background: var(--brand-bg);
+      border: 1px solid var(--brand-border);
+      border-radius: 18px;
+    }
+
+    .field-group h3 {
+      margin: 0 0 12px;
+      color: var(--brand-primary);
+      font-size: 1rem;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--brand-text);
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid #d9cadc;
+      border-radius: 12px;
+      padding: 11px 12px;
+      font: inherit;
+      color: var(--brand-text);
+      background: #fff;
+    }
+
+    .field textarea {
+      min-height: 80px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .package-form {
+      border-top: 1px dashed #d8c9da;
+      margin-top: 14px;
+      padding-top: 14px;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .preview-stack {
+      display: grid;
+      gap: 20px;
+    }
+
+    .preview-panel,
+    .output-panel {
+      padding: 20px;
+    }
+
+    .output-panel textarea {
+      width: 100%;
+      min-height: 360px;
+      resize: vertical;
+      border: 1px solid #d7cad9;
+      border-radius: 16px;
+      padding: 14px;
+      font: 13px/1.55 Consolas, Monaco, monospace;
+      color: #2d2231;
+      background: #fff;
+    }
+
+    .output-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .muted-tip {
+      margin-top: 12px;
+      color: var(--brand-muted);
+      font-size: .92rem;
+      line-height: 1.6;
+    }
+
+    /* Preview styles */
+    .preview-shell {
+      position: relative;
+      min-height: 880px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbf8fb 100%);
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid var(--brand-border);
+    }
+
+    .preview-page {
+      min-height: 880px;
+      padding: 34px 26px 34px 84px;
+    }
+
+    .preview-float-btn {
+      position: absolute;
+      left: 0;
+      top: 44px;
+      width: 54px;
+      height: 210px;
+      padding: 12px 10px;
+      border: none;
+      border-radius: 0 14px 14px 0;
+      background: linear-gradient(180deg, var(--brand-primary-2) 0%, var(--brand-primary) 100%);
+      color: #fff;
+      box-shadow: 0 12px 26px rgba(80, 20, 74, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-float-btn span {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      font-size: .92rem;
+    }
+
+    .preview-content-title {
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 2.5vw, 2.85rem);
+      line-height: 1.04;
+      color: var(--brand-primary);
+      max-width: 920px;
+    }
+
+    .preview-content-subtitle {
+      margin: 0 0 28px;
+      max-width: 850px;
+      color: var(--brand-muted);
+      line-height: 1.75;
+      font-size: 1rem;
+    }
+
+    .pricing-wrap {
+      background: linear-gradient(180deg, #fff 0%, #fcf8fc 100%);
+      border: 1px solid var(--brand-border);
+      box-shadow: var(--shadow);
+      border-radius: 24px;
+      padding: 26px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(210px, 1fr));
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .pricing-card {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--brand-border);
+      border-radius: 24px;
+      padding: 22px 18px 18px;
+      box-shadow: 0 12px 26px rgba(80,20,74,0.07);
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .pricing-card.popular {
+      border: 2px solid rgba(80,20,74,.20);
+      transform: translateY(-8px);
+    }
+
+    .pricing-card.premium {
+      background: linear-gradient(180deg, #fffdfa 0%, #fff 100%);
+    }
+
+    .badge {
+      position: absolute;
+      top: -12px;
+      right: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: .74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .badge.popular { background: var(--brand-primary); color: #fff; }
+    .badge.premium { background: var(--brand-accent); color: #4e3300; }
+
+    .card-title {
+      margin: 0 0 8px;
+      color: var(--brand-primary);
+      font-size: 1.22rem;
+    }
+
+    .card-desc {
+      margin: 0 0 16px;
+      color: var(--brand-muted);
+      line-height: 1.6;
+      min-height: 90px;
+      font-size: .96rem;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 3px;
+      color: #241c29;
+      font-weight: 800;
+    }
+
+    .price-row .currency { font-size: 1.05rem; color: var(--brand-primary); }
+    .price-row .amount { font-size: 2.25rem; line-height: 1; letter-spacing: -.03em; }
+
+    .duration-note {
+      margin: 0 0 16px;
+      color: var(--brand-muted);
+      font-size: .93rem;
+    }
+
+    .meta-box {
+      display: grid;
+      gap: 10px;
+      padding: 14px 0 16px;
+      margin-bottom: 16px;
+      border-top: 1px solid var(--brand-border);
+      border-bottom: 1px solid var(--brand-border);
+    }
+
+    .meta-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: .94rem;
+    }
+
+    .meta-label { color: var(--brand-muted); }
+    .meta-value { color: var(--brand-text); font-weight: 700; text-align: right; }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.58;
+      font-size: .95rem;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(80,20,74,.08);
+      color: var(--brand-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      font-size: .8rem;
+      font-weight: 800;
+      margin-top: 1px;
+    }
+
+    .cta-btn {
+      margin-top: auto;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      width: 100%;
+      border-radius: 14px;
+      font-weight: 800;
+      padding: 12px 16px;
+      transition: transform .2s ease;
+    }
+
+    .cta-btn:hover { transform: translateY(-2px); }
+    .cta-btn.primary { background: linear-gradient(180deg, var(--brand-primary-2) 0%, var(--brand-primary) 100%); color: #fff; }
+    .cta-btn.secondary { background: #f2eaf3; color: var(--brand-primary); }
+    .cta-btn.accent { background: linear-gradient(180deg, #ffc52e 0%, var(--brand-accent) 100%); color: #4d3200; }
+
+    .preview-embed-mode .preview-float-btn { display: none; }
+    .preview-embed-mode .preview-page { padding-left: 26px; }
+
+    .toggle-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .toggle-chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--brand-border);
+      background: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--brand-primary);
+    }
+
+    .toggle-chip.active {
+      background: var(--brand-primary);
+      color: #fff;
+      border-color: var(--brand-primary);
+    }
+
+    @media (max-width: 1200px) {
+      .builder { grid-template-columns: 1fr; }
+      .controls { position: relative; top: 0; max-height: none; }
+      .pricing-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .page { padding: 18px 12px 34px; }
+      .mini-row { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .preview-float-btn { height: 180px; width: 50px; }
+      .preview-page { padding: 26px 16px 26px 74px; }
+      .preview-embed-mode .preview-page { padding-left: 16px; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>EuroPolytech Pricing HTML Generator</h1>
+        <p>
+          Edit every visible detail yourself, including titles, prices, features, badge labels, button text,
+          button URLs, and display mode. Then generate either the full code with the floating button or only the
+          pricing HTML for direct embedding inside a webpage.
+        </p>
+      </div>
+      <div class="quick-actions">
+        <button class="quick-btn" id="loadSampleBtn">Load sample data</button>
+        <button class="quick-btn secondary" id="resetBtn">Reset form</button>
+      </div>
+    </div>
+
+    <div class="builder">
+      <section class="panel controls">
+        <h2>Builder controls</h2>
+        <p class="section-note">Everything below is editable. The live preview updates instantly, and the output box generates clean copyable code.</p>
+
+        <div class="toggle-row">
+          <button type="button" class="toggle-chip active" data-mode="full">Full code with floating button</button>
+          <button type="button" class="toggle-chip" data-mode="embed">HTML content only</button>
+        </div>
+
+        <div class="field-grid">
+          <div class="field-group">
+            <h3>Main section</h3>
+            <div class="field">
+              <label for="mainTitle">Main title</label>
+              <input id="mainTitle" type="text" />
+            </div>
+            <div class="field">
+              <label for="mainSubtitle">Introductory paragraph</label>
+              <textarea id="mainSubtitle"></textarea>
+            </div>
+            <div class="field">
+              <label for="buttonLabel">Floating button label</label>
+              <input id="buttonLabel" type="text" />
+            </div>
+            <div class="field">
+              <label for="buttonIcon">Floating button icon or symbol</label>
+              <input id="buttonIcon" type="text" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <h3>Package 1</h3>
+            <div class="package-form" style="border-top:none; padding-top:0; margin-top:0;">
+              <div class="field"><label for="p1Name">Package name</label><input id="p1Name" type="text" /></div>
+              <div class="field"><label for="p1Desc">Description</label><textarea id="p1Desc"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p1Price">Price</label><input id="p1Price" type="text" /></div>
+                <div class="field"><label for="p1DurationNote">Duration line</label><input id="p1DurationNote" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p1Meta1">Meta line 1 label</label><input id="p1Meta1" type="text" /></div>
+                <div class="field"><label for="p1Meta1Value">Meta line 1 value</label><input id="p1Meta1Value" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p1Meta2">Meta line 2 label</label><input id="p1Meta2" type="text" /></div>
+                <div class="field"><label for="p1Meta2Value">Meta line 2 value</label><input id="p1Meta2Value" type="text" /></div>
+              </div>
+              <div class="field"><label for="p1Features">Features, one per line</label><textarea id="p1Features"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p1CtaText">Button text</label><input id="p1CtaText" type="text" /></div>
+                <div class="field"><label for="p1Url">Button URL</label><input id="p1Url" type="text" /></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <h3>Package 2</h3>
+            <div class="package-form" style="border-top:none; padding-top:0; margin-top:0;">
+              <div class="mini-row">
+                <div class="field"><label for="p2Badge">Badge text</label><input id="p2Badge" type="text" /></div>
+                <div class="field"><label for="p2Style">Card style</label><select id="p2Style"><option value="popular">Popular</option><option value="standard">Standard</option><option value="premium">Premium</option></select></div>
+              </div>
+              <div class="field"><label for="p2Name">Package name</label><input id="p2Name" type="text" /></div>
+              <div class="field"><label for="p2Desc">Description</label><textarea id="p2Desc"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p2Price">Price</label><input id="p2Price" type="text" /></div>
+                <div class="field"><label for="p2DurationNote">Duration line</label><input id="p2DurationNote" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p2Meta1">Meta line 1 label</label><input id="p2Meta1" type="text" /></div>
+                <div class="field"><label for="p2Meta1Value">Meta line 1 value</label><input id="p2Meta1Value" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p2Meta2">Meta line 2 label</label><input id="p2Meta2" type="text" /></div>
+                <div class="field"><label for="p2Meta2Value">Meta line 2 value</label><input id="p2Meta2Value" type="text" /></div>
+              </div>
+              <div class="field"><label for="p2Features">Features, one per line</label><textarea id="p2Features"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p2CtaText">Button text</label><input id="p2CtaText" type="text" /></div>
+                <div class="field"><label for="p2Url">Button URL</label><input id="p2Url" type="text" /></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <h3>Package 3</h3>
+            <div class="package-form" style="border-top:none; padding-top:0; margin-top:0;">
+              <div class="mini-row">
+                <div class="field"><label for="p3Badge">Badge text</label><input id="p3Badge" type="text" /></div>
+                <div class="field"><label for="p3Style">Card style</label><select id="p3Style"><option value="premium">Premium</option><option value="popular">Popular</option><option value="standard">Standard</option></select></div>
+              </div>
+              <div class="field"><label for="p3Name">Package name</label><input id="p3Name" type="text" /></div>
+              <div class="field"><label for="p3Desc">Description</label><textarea id="p3Desc"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p3Price">Price</label><input id="p3Price" type="text" /></div>
+                <div class="field"><label for="p3DurationNote">Duration line</label><input id="p3DurationNote" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p3Meta1">Meta line 1 label</label><input id="p3Meta1" type="text" /></div>
+                <div class="field"><label for="p3Meta1Value">Meta line 1 value</label><input id="p3Meta1Value" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p3Meta2">Meta line 2 label</label><input id="p3Meta2" type="text" /></div>
+                <div class="field"><label for="p3Meta2Value">Meta line 2 value</label><input id="p3Meta2Value" type="text" /></div>
+              </div>
+              <div class="field"><label for="p3Features">Features, one per line</label><textarea id="p3Features"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p3CtaText">Button text</label><input id="p3CtaText" type="text" /></div>
+                <div class="field"><label for="p3Url">Button URL</label><input id="p3Url" type="text" /></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <h3>Package 4</h3>
+            <div class="package-form" style="border-top:none; padding-top:0; margin-top:0;">
+              <div class="mini-row">
+                <div class="field"><label for="p4Badge">Badge text</label><input id="p4Badge" type="text" /></div>
+                <div class="field"><label for="p4Style">Card style</label><select id="p4Style"><option value="standard">Standard</option><option value="popular">Popular</option><option value="premium">Premium</option></select></div>
+              </div>
+              <div class="field"><label for="p4Name">Package name</label><input id="p4Name" type="text" /></div>
+              <div class="field"><label for="p4Desc">Description</label><textarea id="p4Desc"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p4Price">Price</label><input id="p4Price" type="text" /></div>
+                <div class="field"><label for="p4DurationNote">Duration line</label><input id="p4DurationNote" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p4Meta1">Meta line 1 label</label><input id="p4Meta1" type="text" /></div>
+                <div class="field"><label for="p4Meta1Value">Meta line 1 value</label><input id="p4Meta1Value" type="text" /></div>
+              </div>
+              <div class="mini-row">
+                <div class="field"><label for="p4Meta2">Meta line 2 label</label><input id="p4Meta2" type="text" /></div>
+                <div class="field"><label for="p4Meta2Value">Meta line 2 value</label><input id="p4Meta2Value" type="text" /></div>
+              </div>
+              <div class="field"><label for="p4Features">Features, one per line</label><textarea id="p4Features"></textarea></div>
+              <div class="mini-row">
+                <div class="field"><label for="p4CtaText">Button text</label><input id="p4CtaText" type="text" /></div>
+                <div class="field"><label for="p4Url">Button URL</label><input id="p4Url" type="text" /></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="preview-stack">
+        <section class="panel preview-panel">
+          <h2>Live preview</h2>
+          <p class="section-note">This preview keeps the same overall visual direction while removing non-essential filler content.</p>
+          <div class="preview-shell" id="previewShell">
+            <button class="preview-float-btn" type="button" id="previewFloatBtn"><span><span id="previewButtonIcon">✦</span><span id="previewButtonLabel">View Pricing</span></span></button>
+            <div class="preview-page">
+              <h3 class="preview-content-title" id="previewTitle"></h3>
+              <p class="preview-content-subtitle" id="previewSubtitle"></p>
+              <div class="pricing-wrap">
+                <div class="pricing-grid" id="pricingGridPreview"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel output-panel">
+          <h2>Generated code</h2>
+          <p class="section-note">Choose your mode, then copy the generated code below.</p>
+          <textarea id="generatedCode" spellcheck="false"></textarea>
+          <div class="output-actions">
+            <button class="quick-btn" id="copyCodeBtn">Copy code</button>
+            <button class="quick-btn secondary" id="downloadCodeBtn">Download HTML</button>
+          </div>
+          <p class="muted-tip">Full mode outputs the floating button, overlay, panel, styles, and script. Embed mode outputs only the pricing section markup and styles for direct insertion into an existing page.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sampleData = {
+      mode: 'full',
+      mainTitle: 'English Training & Trinity ISE Certification Pathway',
+      mainSubtitle: 'Choose the pathway that matches your goals, from structured English development to full certification support. Each package is fully editable, including features, call-to-action text, and button destinations.',
+      buttonLabel: 'View Pricing',
+      buttonIcon: '✦',
+      packages: [
+        {
+          badge: '', style: 'standard', name: 'Starter',
+          desc: 'For learners who want structured English training before moving toward formal certification.',
+          price: '850', durationNote: '3-month training pathway',
+          meta1: 'Duration', meta1Value: '3 months',
+          meta2: 'Focus', meta2Value: 'English training',
+          features: 'Placement assessment and level guidance\nGeneral English training across all four skills\nContinuous tutor feedback\nCEFR-aligned progression support\nSuitable for learners not yet ready for the exam',
+          ctaText: 'Apply for Starter', url: '#'
+        },
+        {
+          badge: 'Most Popular', style: 'popular', name: 'Standard',
+          desc: 'The best-value choice for students who want both English development and focused Trinity ISE preparation.',
+          price: '1,250', durationNote: '3 to 4-month guided pathway',
+          meta1: 'Duration', meta1Value: '3–4 months',
+          meta2: 'Focus', meta2Value: 'Training + ISE prep',
+          features: 'Everything included in Starter\nISE-focused reading, writing, speaking, and listening practice\nMock assessment tasks and exam strategies\nWriting correction and performance feedback\nRecommended for most certification-seeking students',
+          ctaText: 'Choose Standard', url: '#'
+        },
+        {
+          badge: 'Premium', style: 'premium', name: 'Full Pathway',
+          desc: 'For applicants who want a complete and more secure route from training to certification support.',
+          price: '1,650', durationNote: '3 to 4-month premium package',
+          meta1: 'Duration', meta1Value: '3–4 months',
+          meta2: 'Focus', meta2Value: 'Full guided support',
+          features: 'Everything included in Standard\n1-to-1 coaching sessions\nFull mock exam simulation\nPriority academic and administrative support\nOfficial exam registration support included',
+          ctaText: 'Apply for Premium', url: '#'
+        },
+        {
+          badge: '', style: 'standard', name: 'Intensive',
+          desc: 'For students aiming to move faster or progress by a full CEFR band with stronger academic structure.',
+          price: '2,200', durationNote: '4 to 6-month accelerated track',
+          meta1: 'Duration', meta1Value: '4–6 months',
+          meta2: 'Focus', meta2Value: 'Accelerated progress',
+          features: 'Extended guided hours and stronger progression tracking\nWeekly assessments and structured tutor review\nAdvanced ISE preparation support\nIdeal for rapid progression goals\nSuitable for applicants preparing for future academic entry',
+          ctaText: 'Enquire Now', url: '#'
+        }
+      ]
+    };
+
+    const ids = [
+      'mainTitle','mainSubtitle','buttonLabel','buttonIcon',
+      'p1Name','p1Desc','p1Price','p1DurationNote','p1Meta1','p1Meta1Value','p1Meta2','p1Meta2Value','p1Features','p1CtaText','p1Url',
+      'p2Badge','p2Style','p2Name','p2Desc','p2Price','p2DurationNote','p2Meta1','p2Meta1Value','p2Meta2','p2Meta2Value','p2Features','p2CtaText','p2Url',
+      'p3Badge','p3Style','p3Name','p3Desc','p3Price','p3DurationNote','p3Meta1','p3Meta1Value','p3Meta2','p3Meta2Value','p3Features','p3CtaText','p3Url',
+      'p4Badge','p4Style','p4Name','p4Desc','p4Price','p4DurationNote','p4Meta1','p4Meta1Value','p4Meta2','p4Meta2Value','p4Features','p4CtaText','p4Url'
+    ];
+
+    let currentMode = 'full';
+
+    function setFormData(data) {
+      document.getElementById('mainTitle').value = data.mainTitle;
+      document.getElementById('mainSubtitle').value = data.mainSubtitle;
+      document.getElementById('buttonLabel').value = data.buttonLabel;
+      document.getElementById('buttonIcon').value = data.buttonIcon;
+
+      data.packages.forEach((pkg, i) => {
+        const n = i + 1;
+        const prefix = 'p' + n;
+        if (document.getElementById(prefix + 'Badge')) document.getElementById(prefix + 'Badge').value = pkg.badge || '';
+        if (document.getElementById(prefix + 'Style')) document.getElementById(prefix + 'Style').value = pkg.style || 'standard';
+        document.getElementById(prefix + 'Name').value = pkg.name;
+        document.getElementById(prefix + 'Desc').value = pkg.desc;
+        document.getElementById(prefix + 'Price').value = pkg.price;
+        document.getElementById(prefix + 'DurationNote').value = pkg.durationNote;
+        document.getElementById(prefix + 'Meta1').value = pkg.meta1;
+        document.getElementById(prefix + 'Meta1Value').value = pkg.meta1Value;
+        document.getElementById(prefix + 'Meta2').value = pkg.meta2;
+        document.getElementById(prefix + 'Meta2Value').value = pkg.meta2Value;
+        document.getElementById(prefix + 'Features').value = pkg.features;
+        document.getElementById(prefix + 'CtaText').value = pkg.ctaText;
+        document.getElementById(prefix + 'Url').value = pkg.url;
+      });
+    }
+
+    function getFormData() {
+      return {
+        mode: currentMode,
+        mainTitle: document.getElementById('mainTitle').value.trim(),
+        mainSubtitle: document.getElementById('mainSubtitle').value.trim(),
+        buttonLabel: document.getElementById('buttonLabel').value.trim(),
+        buttonIcon: document.getElementById('buttonIcon').value.trim(),
+        packages: [1,2,3,4].map(n => ({
+          badge: document.getElementById('p'+n+'Badge') ? document.getElementById('p'+n+'Badge').value.trim() : '',
+          style: document.getElementById('p'+n+'Style') ? document.getElementById('p'+n+'Style').value : 'standard',
+          name: document.getElementById('p'+n+'Name').value.trim(),
+          desc: document.getElementById('p'+n+'Desc').value.trim(),
+          price: document.getElementById('p'+n+'Price').value.trim(),
+          durationNote: document.getElementById('p'+n+'DurationNote').value.trim(),
+          meta1: document.getElementById('p'+n+'Meta1').value.trim(),
+          meta1Value: document.getElementById('p'+n+'Meta1Value').value.trim(),
+          meta2: document.getElementById('p'+n+'Meta2').value.trim(),
+          meta2Value: document.getElementById('p'+n+'Meta2Value').value.trim(),
+          features: document.getElementById('p'+n+'Features').value.trim(),
+          ctaText: document.getElementById('p'+n+'CtaText').value.trim(),
+          url: document.getElementById('p'+n+'Url').value.trim()
+        }))
+      };
+    }
+
+    function escapeHtml(str) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderFeatures(text) {
+      return text
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(item => `<li>${escapeHtml(item)}</li>`)
+        .join('');
+    }
+
+    function getCtaClass(style, index) {
+      if (style === 'premium') return 'accent';
+      if (style === 'popular') return 'primary';
+      return index === 0 || index === 3 ? 'secondary' : 'primary';
+    }
+
+    function getCardHtml(pkg, index) {
+      const styleClass = pkg.style === 'standard' ? '' : ' ' + pkg.style;
+      const badgeClass = pkg.style === 'premium' ? 'premium' : 'popular';
+      const badgeHtml = pkg.badge ? `<span class="badge ${badgeClass}">${escapeHtml(pkg.badge)}</span>` : '';
+      const ctaClass = getCtaClass(pkg.style, index);
+      return `
+        <article class="pricing-card${styleClass}">
+          ${badgeHtml}
+          <h4 class="card-title">${escapeHtml(pkg.name)}</h4>
+          <p class="card-desc">${escapeHtml(pkg.desc)}</p>
+          <div class="price-row"><span class="currency">€</span><span class="amount">${escapeHtml(pkg.price)}</span></div>
+          <p class="duration-note">${escapeHtml(pkg.durationNote)}</p>
+          <div class="meta-box">
+            <div class="meta-line"><span class="meta-label">${escapeHtml(pkg.meta1)}</span><span class="meta-value">${escapeHtml(pkg.meta1Value)}</span></div>
+            <div class="meta-line"><span class="meta-label">${escapeHtml(pkg.meta2)}</span><span class="meta-value">${escapeHtml(pkg.meta2Value)}</span></div>
+          </div>
+          <ul class="feature-list">${renderFeatures(pkg.features)}</ul>
+          <a class="cta-btn ${ctaClass}" href="${escapeHtml(pkg.url || '#')}">${escapeHtml(pkg.ctaText || 'Learn More')}</a>
+        </article>`;
+    }
+
+    function renderPreview() {
+      const data = getFormData();
+      document.getElementById('previewTitle').textContent = data.mainTitle;
+      document.getElementById('previewSubtitle').textContent = data.mainSubtitle;
+      document.getElementById('previewButtonLabel').textContent = data.buttonLabel || 'View Pricing';
+      document.getElementById('previewButtonIcon').textContent = data.buttonIcon || '✦';
+
+      const previewShell = document.getElementById('previewShell');
+      if (currentMode === 'embed') previewShell.classList.add('preview-embed-mode');
+      else previewShell.classList.remove('preview-embed-mode');
+
+      document.getElementById('pricingGridPreview').innerHTML = data.packages.map(getCardHtml).join('');
+      document.getElementById('generatedCode').value = currentMode === 'full' ? buildFullCode(data) : buildEmbedCode(data);
+    }
+
+    function buildSharedStyles() {
+      return `<style>
+:root {
+  --ep-primary: #50144A;
+  --ep-primary-2: #65195e;
+  --ep-accent: #f6b10a;
+  --ep-soft: #f3ecf4;
+  --ep-border: #e6dbe8;
+  --ep-text: #322336;
+  --ep-muted: #786b7a;
+  --ep-bg: #faf7fb;
+  --ep-white: #ffffff;
+  --ep-shadow: 0 18px 48px rgba(80, 20, 74, 0.18);
+}
+.ep-pricing-widget, .ep-pricing-widget * { box-sizing: border-box; }
+.ep-pricing-widget {
+  font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+  color: var(--ep-text);
+}
+.ep-pricing-content {
+  background: linear-gradient(180deg, #fff 0%, #fcf8fc 100%);
+  border: 1px solid var(--ep-border);
+  box-shadow: var(--ep-shadow);
+  border-radius: 24px;
+  padding: 26px;
+}
+.ep-pricing-title {
+  margin: 0 0 10px;
+  font-size: clamp(1.8rem, 2.4vw, 2.85rem);
+  line-height: 1.04;
+  color: var(--ep-primary);
+}
+.ep-pricing-subtitle {
+  margin: 0 0 28px;
+  max-width: 860px;
+  color: var(--ep-muted);
+  line-height: 1.75;
+  font-size: 1rem;
+}
+.ep-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(210px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.ep-pricing-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--ep-border);
+  border-radius: 24px;
+  padding: 22px 18px 18px;
+  box-shadow: 0 12px 26px rgba(80,20,74,0.07);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.ep-pricing-card.popular {
+  border: 2px solid rgba(80,20,74,.20);
+  transform: translateY(-8px);
+}
+.ep-pricing-card.premium {
+  background: linear-gradient(180deg, #fffdfa 0%, #fff 100%);
+}
+.ep-badge {
+  position: absolute;
+  top: -12px;
+  right: 16px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.ep-badge.popular { background: var(--ep-primary); color: #fff; }
+.ep-badge.premium { background: var(--ep-accent); color: #4e3300; }
+.ep-card-title {
+  margin: 0 0 8px;
+  color: var(--ep-primary);
+  font-size: 1.22rem;
+}
+.ep-card-desc {
+  margin: 0 0 16px;
+  color: var(--ep-muted);
+  line-height: 1.6;
+  min-height: 90px;
+  font-size: .96rem;
+}
+.ep-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 3px;
+  color: #241c29;
+  font-weight: 800;
+}
+.ep-price-row .currency { font-size: 1.05rem; color: var(--ep-primary); }
+.ep-price-row .amount { font-size: 2.25rem; line-height: 1; letter-spacing: -.03em; }
+.ep-duration-note {
+  margin: 0 0 16px;
+  color: var(--ep-muted);
+  font-size: .93rem;
+}
+.ep-meta-box {
+  display: grid;
+  gap: 10px;
+  padding: 14px 0 16px;
+  margin-bottom: 16px;
+  border-top: 1px solid var(--ep-border);
+  border-bottom: 1px solid var(--ep-border);
+}
+.ep-meta-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: .94rem;
+}
+.ep-meta-label { color: var(--ep-muted); }
+.ep-meta-value { color: var(--ep-text); font-weight: 700; text-align: right; }
+.ep-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+  display: grid;
+  gap: 10px;
+}
+.ep-feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.58;
+  font-size: .95rem;
+}
+.ep-feature-list li::before {
+  content: "✓";
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(80,20,74,.08);
+  color: var(--ep-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: .8rem;
+  font-weight: 800;
+  margin-top: 1px;
+}
+.ep-cta-btn {
+  margin-top: auto;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  width: 100%;
+  border-radius: 14px;
+  font-weight: 800;
+  padding: 12px 16px;
+  transition: transform .2s ease;
+}
+.ep-cta-btn:hover { transform: translateY(-2px); }
+.ep-cta-btn.primary { background: linear-gradient(180deg, var(--ep-primary-2) 0%, var(--ep-primary) 100%); color: #fff; }
+.ep-cta-btn.secondary { background: #f2eaf3; color: var(--ep-primary); }
+.ep-cta-btn.accent { background: linear-gradient(180deg, #ffc52e 0%, var(--ep-accent) 100%); color: #4d3200; }
+.ep-float-trigger {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 54px;
+  height: 210px;
+  padding: 12px 10px;
+  border: none;
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(180deg, var(--ep-primary-2) 0%, var(--ep-primary) 100%);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(80, 20, 74, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9998;
+}
+.ep-float-trigger span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  font-size: .92rem;
+}
+.ep-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28,14,31,.52);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .28s ease, visibility .28s ease;
+  z-index: 9997;
+}
+.ep-overlay.active { opacity: 1; visibility: visible; }
+.ep-slide-panel {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: min(1180px, 100vw);
+  height: 100vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #fff 0%, #faf7fb 100%);
+  transform: translateX(-102%);
+  transition: transform .34s ease;
+  z-index: 9999;
+  box-shadow: var(--ep-shadow);
+  padding: 28px;
+}
+.ep-slide-panel.active { transform: translateX(0); }
+.ep-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 14px;
+  background: #f3edf4;
+  color: var(--ep-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  float: right;
+}
+.ep-clear { clear: both; }
+@media (max-width: 1180px) {
+  .ep-pricing-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+}
+@media (max-width: 760px) {
+  .ep-pricing-grid { grid-template-columns: 1fr; }
+  .ep-float-trigger { width: 50px; height: 185px; }
+  .ep-slide-panel { padding: 20px 16px; }
+  .ep-pricing-content { padding: 20px 16px; }
+}
+</style>`;
+    }
+
+    function buildCardsMarkup(data, prefix = 'ep') {
+      return data.packages.map((pkg, index) => {
+        const styleClass = pkg.style === 'standard' ? '' : ' ' + pkg.style;
+        const badgeClass = pkg.style === 'premium' ? 'premium' : 'popular';
+        const badgeHtml = pkg.badge ? `<span class="${prefix}-badge ${badgeClass}">${escapeHtml(pkg.badge)}</span>` : '';
+        const ctaClass = getCtaClass(pkg.style, index);
+        const features = pkg.features.split(/\n+/).map(x => x.trim()).filter(Boolean).map(x => `<li>${escapeHtml(x)}</li>`).join('');
+        return `<article class="${prefix}-pricing-card${styleClass}">
+  ${badgeHtml}
+  <h3 class="${prefix}-card-title">${escapeHtml(pkg.name)}</h3>
+  <p class="${prefix}-card-desc">${escapeHtml(pkg.desc)}</p>
+  <div class="${prefix}-price-row"><span class="currency">€</span><span class="amount">${escapeHtml(pkg.price)}</span></div>
+  <p class="${prefix}-duration-note">${escapeHtml(pkg.durationNote)}</p>
+  <div class="${prefix}-meta-box">
+    <div class="${prefix}-meta-line"><span class="${prefix}-meta-label">${escapeHtml(pkg.meta1)}</span><span class="${prefix}-meta-value">${escapeHtml(pkg.meta1Value)}</span></div>
+    <div class="${prefix}-meta-line"><span class="${prefix}-meta-label">${escapeHtml(pkg.meta2)}</span><span class="${prefix}-meta-value">${escapeHtml(pkg.meta2Value)}</span></div>
+  </div>
+  <ul class="${prefix}-feature-list">${features}</ul>
+  <a class="${prefix}-cta-btn ${ctaClass}" href="${escapeHtml(pkg.url || '#')}">${escapeHtml(pkg.ctaText || 'Learn More')}</a>
+</article>`;
+      }).join('\n');
+    }
+
+    function buildEmbedCode(data) {
+      return `${buildSharedStyles()}
+<div class="ep-pricing-widget">
+  <div class="ep-pricing-content">
+    <h2 class="ep-pricing-title">${escapeHtml(data.mainTitle)}</h2>
+    <p class="ep-pricing-subtitle">${escapeHtml(data.mainSubtitle)}</p>
+    <div class="ep-pricing-grid">
+${buildCardsMarkup(data, 'ep')}
+    </div>
+  </div>
+</div>`;
+    }
+
+    function buildFullCode(data) {
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${escapeHtml(data.mainTitle)}</title>
+  ${buildSharedStyles()}
+</head>
+<body>
+  <div class="ep-pricing-widget">
+    <button class="ep-float-trigger" id="epOpenPricing" aria-label="Open pricing panel" aria-expanded="false">
+      <span><span>${escapeHtml(data.buttonIcon || '✦')}</span><span>${escapeHtml(data.buttonLabel || 'View Pricing')}</span></span>
+    </button>
+
+    <div class="ep-overlay" id="epPricingOverlay"></div>
+
+    <aside class="ep-slide-panel" id="epPricingPanel" aria-hidden="true">
+      <button class="ep-close-btn" id="epClosePricing" aria-label="Close pricing panel">×</button>
+      <div class="ep-clear"></div>
+      <div class="ep-pricing-content">
+        <h2 class="ep-pricing-title">${escapeHtml(data.mainTitle)}</h2>
+        <p class="ep-pricing-subtitle">${escapeHtml(data.mainSubtitle)}</p>
+        <div class="ep-pricing-grid">
+${buildCardsMarkup(data, 'ep')}
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    (function () {
+      const openBtn = document.getElementById('epOpenPricing');
+      const closeBtn = document.getElementById('epClosePricing');
+      const overlay = document.getElementById('epPricingOverlay');
+      const panel = document.getElementById('epPricingPanel');
+
+      function openPanel() {
+        panel.classList.add('active');
+        overlay.classList.add('active');
+        panel.setAttribute('aria-hidden', 'false');
+        openBtn.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closePanel() {
+        panel.classList.remove('active');
+        overlay.classList.remove('active');
+        panel.setAttribute('aria-hidden', 'true');
+        openBtn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+
+      openBtn.addEventListener('click', openPanel);
+      closeBtn.addEventListener('click', closePanel);
+      overlay.addEventListener('click', closePanel);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && panel.classList.contains('active')) closePanel();
+      });
+    })();
+  <\/script>
+</body>
+</html>`;
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.toggle-chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      renderPreview();
+    }
+
+    function resetForm() {
+      setFormData(sampleData);
+      setMode(sampleData.mode);
+      renderPreview();
+    }
+
+    document.querySelectorAll('.toggle-chip').forEach(btn => {
+      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', renderPreview);
+      if (el && el.tagName === 'SELECT') el.addEventListener('change', renderPreview);
+    });
+
+    document.getElementById('copyCodeBtn').addEventListener('click', async () => {
+      const output = document.getElementById('generatedCode');
+      try {
+        await navigator.clipboard.writeText(output.value);
+        const btn = document.getElementById('copyCodeBtn');
+        const original = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(() => btn.textContent = original, 1400);
+      } catch (e) {
+        output.select();
+        document.execCommand('copy');
+      }
+    });
+
+    document.getElementById('downloadCodeBtn').addEventListener('click', () => {
+      const code = document.getElementById('generatedCode').value;
+      const blob = new Blob([code], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentMode === 'full' ? 'europolytech-pricing-full.html' : 'europolytech-pricing-embed.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('loadSampleBtn').addEventListener('click', resetForm);
+    document.getElementById('resetBtn').addEventListener('click', resetForm);
+
+    resetForm();
+  </script>
+</body>
+</html>`}]}򐠀canmore.update_textdoc{Jsiiassistant to=canmore.comment_textdoc  彩神争霸怎么json 和天天中彩票{
